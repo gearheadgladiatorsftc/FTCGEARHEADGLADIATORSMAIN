@@ -112,8 +112,10 @@ public class mecanumdrivesample1 extends LinearOpMode {//#######################
      * }
      */
   }
-
-  public void mechanumLoop() {/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  static void mechanumLoop(){
+    //code to switch functions
+  }
+  public void fieldCentricLoop() {/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x;
             double rx = gamepad1.right_stick_x;
@@ -146,6 +148,23 @@ public class mecanumdrivesample1 extends LinearOpMode {//#######################
             backLeftMotor.setPower(backLeftPower);
             frontRightMotor.setPower(frontRightPower);
             backRightMotor.setPower(backRightPower);
+  }
+  public void robotCentricLoop() {/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Remember, Y stick value is reversed
+    y = -gamepad1.left_stick_y;
+    // Factor to counteract imperfect strafing
+    x = gamepad1.left_stick_x * 1.1;
+    rx = gamepad1.right_stick_x;
+    // Denominator is the largest motor power (absolute value) or 1.
+    // This ensures all powers maintain the same ratio, but only if one is outside
+    // of the range [-1, 1].
+    denominator = JavaUtil.maxOfList(JavaUtil
+        .createListWith(JavaUtil.sumOfList(JavaUtil.createListWith(Math.abs(y), Math.abs(x), Math.abs(rx))), 1));
+    // Make sure your ID's match your configuration
+    frontLeftMotor.setPower((y + x + rx) / denominator);
+    backLeftMotor.setPower(((y - x) + rx) / denominator);
+    frontRightMotor.setPower(((y - x) - rx) / denominator);
+    backRightMotor.setPower(((y + x) - rx) / denominator);
   }
   public boolean checkIfDown(){ //Method that checks to see if the slide is resting against the robot
     //Code to use distance sensor

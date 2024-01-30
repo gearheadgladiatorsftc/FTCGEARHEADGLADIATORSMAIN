@@ -7,6 +7,9 @@ import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.GpioPin;
 import com.qualcomm.robotcore.hardware.GpioPinDigitalInput;
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @TeleOp(name = "Competition", group = "Competition")
 public class mecanumdrivesample1 extends LinearOpMode {//#########################################################################################################
@@ -73,7 +76,17 @@ public class mecanumdrivesample1 extends LinearOpMode {//#######################
 
     sOut.setState(true);
 
+    // Retrieve the IMU from the hardware map
+        IMU imu = hardwareMap.get(IMU.class, "imu");
+        // Adjust the orientation parameters to match your robot
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
+        imu.initialize(parameters);
+
     waitForStart();
+    if (isStopRequested()) return;//IDK what this does, but it was in the sample code, so we'll leave it.
     while (opModeIsActive()) {
       updateGPIO();
       mechanumLoop(); // Run the loop for the mechanum drive
@@ -101,21 +114,38 @@ public class mecanumdrivesample1 extends LinearOpMode {//#######################
   }
 
   public void mechanumLoop() {/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Remember, Y stick value is reversed
-    y = -gamepad1.left_stick_y;
-    // Factor to counteract imperfect strafing
-    x = gamepad1.left_stick_x * 1.1;
-    rx = gamepad1.right_stick_x;
-    // Denominator is the largest motor power (absolute value) or 1.
-    // This ensures all powers maintain the same ratio, but only if one is outside
-    // of the range [-1, 1].
-    denominator = JavaUtil.maxOfList(JavaUtil
-        .createListWith(JavaUtil.sumOfList(JavaUtil.createListWith(Math.abs(y), Math.abs(x), Math.abs(rx))), 1));
-    // Make sure your ID's match your configuration
-    frontLeftMotor.setPower((y + x + rx) / denominator);
-    backLeftMotor.setPower(((y - x) + rx) / denominator);
-    frontRightMotor.setPower(((y - x) - rx) / denominator);
-    backRightMotor.setPower(((y + x) - rx) / denominator);
+   double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+            double x = gamepad1.left_stick_x;
+            double rx = gamepad1.right_stick_x;
+
+            // This button choice was made so that it is hard to hit on accident,
+            // it can be freely changed based on preference.
+            // The equivalent button is start on Xbox-style controllers.
+            if (gamepad1.options) {
+                imu.resetYaw();
+            }
+
+            double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+
+            // Rotate the movement direction counter to the bot's rotation
+            double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+            double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+
+            rotX = rotX * 1.1;  // Counteract imperfect strafing
+
+            // Denominator is the largest motor power (absolute value) or 1
+            // This ensures all the powers maintain the same ratio,
+            // but only if at least one is out of the range [-1, 1]
+            double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+            double frontLeftPower = (rotY + rotX + rx) / denominator;
+            double backLeftPower = (rotY - rotX + rx) / denominator;
+            double frontRightPower = (rotY - rotX - rx) / denominator;
+            double backRightPower = (rotY + rotX - rx) / denominator;
+
+            frontLeftMotor.setPower(frontLeftPower);
+            backLeftMotor.setPower(backLeftPower);
+            frontRightMotor.setPower(frontRightPower);
+            backRightMotor.setPower(backRightPower);
   }
   public boolean checkIfDown(){ //Method that checks to see if the slide is resting against the robot
     //Code to use distance sensor

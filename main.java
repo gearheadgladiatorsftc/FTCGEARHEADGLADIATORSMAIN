@@ -12,7 +12,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @TeleOp(name = "Competition", group = "Competition")
-public class mecanumdrivesample1 extends LinearOpMode {//#########################################################################################################
+public class Main extends LinearOpMode {//#########################################################################################################
 
   private DcMotor frontRightMotor;
   private DcMotor backRightMotor;

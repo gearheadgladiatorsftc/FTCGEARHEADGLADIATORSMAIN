@@ -19,35 +19,6 @@ public class mecanumdrivesample1 extends LinearOpMode {//#######################
   private GpioPin sIn = hwMap.get(GpioPin.class, "slideIn");
   private GpioPin sOut = hwMap.get(GpioPin.class, "slideOut");
 
-  ////////////////////////Decounce variables
-  //Gamepad 1
-  private boolean db1_a;
-  private boolean db1_b;
-  private boolean db1_x;
-  private boolean db1_y;
-  private boolean db1_lt;
-  private boolean db1_rt;
-  private boolean db1_rb;
-  private boolean db1_lb;
-  private boolean db1_dpu;
-  private boolean db1_dpd;
-  private boolean db1_dpl;
-  private boolean db1_dpr;
-  //Gamepad 2
-  private boolean db2_a;
-  private boolean db2_b;
-  private boolean db2_x;
-  private boolean db2_y;
-  private boolean db2_lt;
-  private boolean db2_rt;
-  private boolean db2_rb;
-  private boolean db2_lb;
-  private boolean db2_dpu;
-  private boolean db2_dpd;
-  private boolean db2_dpl;
-  private boolean db2_dpr;
-  //////////////////////////////////////////////
-
   /**
    * This function is executed when this Op Mode is selected from the Driver
    * Station.
@@ -151,17 +122,12 @@ public class mecanumdrivesample1 extends LinearOpMode {//#######################
     return true;
   }
   public void slideLoop(){/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    if(gamepad2.b && !db2_b){
+    if(gamepad2.b && !autobreak){
       //brake motor
-      db2_b = true;
-      autobreak = !autobreak;
-      //break;//terminate the rest of the loop
-    }
-    else if(gamepad2.b && db2_b){
-
+      return;//terminate the rest of the loop
     }
     else{
-        db2_b = false; //Debounce
+        //unbreak motor
     }
     if (gamepad1.left_trigger > 0 && !slideDown()) {// Check if the trigger is depressed and the slide is up
       lift.setPower(gamepad2.left_trigger); //move slide down
@@ -173,27 +139,55 @@ public class mecanumdrivesample1 extends LinearOpMode {//#######################
         //autobreak
       }
     }
-    if(gamepad2.x && !db2_x){
+    if (gamepad2.x && !autobreakPressed) {
       autobreak = !autobreak;
-      db2_x = true;
-    }
-    else if(gamepad2.x && !db2_x){
-    }
-    else{
-      db2_x = false;
-    }
+      autobreakPressed = true;
+      autobreakPressedTimestamp = System.currentTimeMillis();
+  }
+  
+  // Add these member variables at the beginning of your class
+  private boolean autobreakPressed = false;
+  private long autobreakPressedTimestamp = 0;
+  
+  // Add this method in your class
+  private void resetAutobreakButton() {
+      autobreakPressed = false;
+      autobreakPressedTimestamp = 0;
+  }
+  
+  // Then, in your main loop or a more suitable place, add the following code:
+  if (System.currentTimeMillis() - autobreakPressedTimestamp > 1000) {
+      resetAutobreakButton();
+  }
+  
+  // Also, call resetAutobreakButton() when the op mode is starting, or when needed to reset the button state.
+  
   }
   public void clawLoop(){//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    if(gamepad2.y && pixelLoaded){
-        if(!checkIfDown()){ //If slide is not down, put it down
-            while(!checkIfDown()){
-                lift.setPower(-1);
-            }
-        }
-        //grab pixel
-    }
-    if(gamepad2.a && !db2_a){
-      db2_a = true;
+    if (gamepad2.y && pixelLoaded && !checkIfDown() && !liftMovingDown) {
+      lift.setPower(-1);
+      liftMovingDown = true;
+      liftMovingDownTimestamp = System.currentTimeMillis();
+  }
+  
+  // Add these member variables at the beginning of your class
+  private boolean liftMovingDown = false;
+  private long liftMovingDownTimestamp = 0;
+  
+  // Add this method in your class
+  private void resetLiftMovingDown() {
+      liftMovingDown = false;
+      liftMovingDownTimestamp = 0;
+  }
+  
+  // Then, in your main loop or a more suitable place, add the following code:
+  if (System.currentTimeMillis() - liftMovingDownTimestamp > 1000) {
+      resetLiftMovingDown();
+  }
+  
+  // Also, call resetLiftMovingDown() when the op mode is starting, or when needed to reset the button state.
+  
+    if(gamepad2.a){
         if(grabbed){
             //release pixel
             grabbed = false;
@@ -202,13 +196,7 @@ public class mecanumdrivesample1 extends LinearOpMode {//#######################
             //grab pixel
             grabbed = true;
         }
-
-    }
-    else if(gamepad2.a && db2_a){
-
-    }
-    else{
-      db2_a = false;
+        while(gamepad2.a){}
     }
   }
   public void updateGPIO(){

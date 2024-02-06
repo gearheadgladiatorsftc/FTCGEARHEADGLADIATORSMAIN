@@ -19,16 +19,33 @@ public class Main extends LinearOpMode {// #####################################
   private DcMotor backRightMotor;
   private DcMotor frontLeftMotor;
   private DcMotor backLeftMotor;
-  private HardwareMap hwMap = hardwareMap;
-  private GpioPin sIn = hwMap.get(GpioPin.class, "slideIn");
-  private GpioPin sOut = hwMap.get(GpioPin.class, "slideOut");
+  //private HardwareMap hwMap = hardwareMap;
 
+  private DigitalChannel sIn;
+  private DigitalChannel droneMotor;
+  private DigitalChannel sOut;
+
+  
+
+  
   /**
    * This function is executed when this Op Mode is selected from the Driver
    * Station.
    */
   @Override
   public void runOpMode() {/*************************************************************************************************************************************/
+    
+    sIn = hardwareMap.get(DigitalChannel.class, "sIn");
+    droneMotor = hardwareMap.get(DigitalChannel.class, "droneMotor");
+    sOut = hardwareMap.get(DigitalChannel.class, "sOut");
+    
+    sIn.setMode(DigitalChannel.Mode.INPUT);
+    sOut.setMode(DigitalChannel.Mode.OUTPUT);
+    droneMotor.setMode(DigitalChannel.Mode.OUTPUT);
+
+    sIn.setState(true);
+    droneMotor.setState(false);
+    
     // mechanum variables
     float y;
     double x;
@@ -58,7 +75,8 @@ public class Main extends LinearOpMode {// #####################################
     ElapsedTime myElapsedTime;
     List<HuskyLens.Block> myHuskyLensBlocks;
     // HuskyLens.Block myHuskyLensBlock;
-
+    digitalChannel = hardwareMap.digitalChannel.get("gpio" + GPIO_PIN);
+    digitalChannel.setMode(Mode.INPUT);
     // huskylensAsHuskyLens = hardwareMap.get(HuskyLens.class,
     // "huskylensAsHuskyLens");
     float batvolt = ControlHub_VoltageSensor.getVoltage();
@@ -96,6 +114,7 @@ public class Main extends LinearOpMode {// #####################################
       mechanumLoop(); // Run the loop for the mechanum drive
       huskyLoop(); // Run the loop to check for a new HuskyLens inference
       slideLoop();// Run the loop to control the slide
+      droneLaunch();//Run the drone Launch Loop.
     }
 
   }
@@ -202,24 +221,27 @@ public class Main extends LinearOpMode {// #####################################
       autobreakPressed = true;
       autobreakPressedTimestamp = System.currentTimeMillis();
   }
-  
+
   // Add these member variables at the beginning of your class
   private boolean autobreakPressed = false;
   private long autobreakPressedTimestamp = 0;
-  
+
   // Add this method in your class
   private void resetAutobreakButton() {
       autobreakPressed = false;
       autobreakPressedTimestamp = 0;
   }
-  
+
   // Then, in your main loop or a more suitable place, add the following code:
-  if (System.currentTimeMillis() - autobreakPressedTimestamp > 1000) {
-      resetAutobreakButton();
+  if(System.currentTimeMillis()-autobreakPressedTimestamp>1000)
+
+  {
+    resetAutobreakButton();
   }
-  
-  // Also, call resetAutobreakButton() when the op mode is starting, or when needed to reset the button state.
-  
+
+  // Also, call resetAutobreakButton() when the op mode is starting, or when
+  // needed to reset the button state.
+
   }
 
   public void clawLoop(){//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -228,39 +250,52 @@ public class Main extends LinearOpMode {// #####################################
       liftMovingDown = true;
       liftMovingDownTimestamp = System.currentTimeMillis();
   }
-  
+
   // Add these member variables at the beginning of your class
   private boolean liftMovingDown = false;
   private long liftMovingDownTimestamp = 0;
-  
+
   // Add this method in your class
   private void resetLiftMovingDown() {
       liftMovingDown = false;
       liftMovingDownTimestamp = 0;
   }
-  
+
   // Then, in your main loop or a more suitable place, add the following code:
-  if (System.currentTimeMillis() - liftMovingDownTimestamp > 1000) {
-      resetLiftMovingDown();
+  if(System.currentTimeMillis()-liftMovingDownTimestamp>1000)
+
+  {
+    resetLiftMovingDown();
   }
-  
-  // Also, call resetLiftMovingDown() when the op mode is starting, or when needed to reset the button state.
-  
-    if(gamepad2.a){
-        if(grabbed){
-            //release pixel
-            grabbed = false;
-        }
-        else{
-            //grab pixel
-            grabbed = true;
-        }
-        while(gamepad2.a){}
+
+  // Also, call resetLiftMovingDown() when the op mode is starting, or when needed
+  // to reset the button state.
+
+  if(gamepad2.a)
+  {
+    if (grabbed) {
+      // release pixel
+      grabbed = false;
+    } else {
+      // grab pixel
+      grabbed = true;
     }
+    while (gamepad2.a) {
+    }
+  }
   }
 
   public void updateGPIO() {
-    slideDown = ((GpioPinDigitalInput) sIn).getState();
+    slideDown = sIn.getState();
+  }
+
+  public void droneLaunch(){
+    if(gamepad2.dpad_Left){
+      droneMotor.setState(true);
+    }
+    else{
+      droneMotor.setState(false);
+    }
   }
 }
 

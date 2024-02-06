@@ -15,18 +15,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 @TeleOp(name = "Competition", group = "Competition")
 public class Main extends LinearOpMode {// #########################################################################################################
 
-  private DcMotor frontRightMotor;
-  private DcMotor backRightMotor;
-  private DcMotor frontLeftMotor;
-  private DcMotor backLeftMotor;
+  private static DcMotor frontRightMotor;
+  private static DcMotor backRightMotor;
+  private static DcMotor frontLeftMotor;
+  private static DcMotor backLeftMotor;
   //private HardwareMap hwMap = hardwareMap;
 
   private DigitalChannel sIn;
   private DigitalChannel droneMotor;
   private DigitalChannel sOut;
-
-  
-
   
   /**
    * This function is executed when this Op Mode is selected from the Driver
@@ -138,9 +135,21 @@ public class Main extends LinearOpMode {// #####################################
 
   static void mechanumLoop() {
     // code to switch functions
+    if(gamepad1.y){
+      dMode = true;
+    }
+    if(gamepad1.a){
+      dMode = false;
+    }
+    if(dMode){
+      robotCentricLoop();
+    }
+    else{
+      fieldCentricLoop();
+    }
   }
 
-  public void fieldCentricLoop() {/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  static void fieldCentricLoop() {/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
     double x = gamepad1.left_stick_x;
     double rx = gamepad1.right_stick_x;
@@ -175,7 +184,7 @@ public class Main extends LinearOpMode {// #####################################
     backRightMotor.setPower(backRightPower);
   }
 
-  public void robotCentricLoop() {/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  static void robotCentricLoop() {/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Remember, Y stick value is reversed
     y = -gamepad1.left_stick_y;
     // Factor to counteract imperfect strafing

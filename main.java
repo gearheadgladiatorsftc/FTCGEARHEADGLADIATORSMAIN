@@ -19,30 +19,30 @@ public class Main extends LinearOpMode {// #####################################
   private static DcMotor backRightMotor;
   private static DcMotor frontLeftMotor;
   private static DcMotor backLeftMotor;
-  //private HardwareMap hwMap = hardwareMap;
+  // private HardwareMap hwMap = hardwareMap;
 
   private DigitalChannel sIn;
   private DigitalChannel droneMotor;
   private DigitalChannel sOut;
-  
+
   /**
    * This function is executed when this Op Mode is selected from the Driver
    * Station.
    */
   @Override
   public void runOpMode() {/*************************************************************************************************************************************/
-    
+
     sIn = hardwareMap.get(DigitalChannel.class, "sIn");
     droneMotor = hardwareMap.get(DigitalChannel.class, "droneMotor");
     sOut = hardwareMap.get(DigitalChannel.class, "sOut");
-    
+
     sIn.setMode(DigitalChannel.Mode.INPUT);
     sOut.setMode(DigitalChannel.Mode.OUTPUT);
     droneMotor.setMode(DigitalChannel.Mode.OUTPUT);
 
     sIn.setState(true);
     droneMotor.setState(false);
-    
+
     // mechanum variables
     float y;
     double x;
@@ -111,7 +111,7 @@ public class Main extends LinearOpMode {// #####################################
       mechanumLoop(); // Run the loop for the mechanum drive
       huskyLoop(); // Run the loop to check for a new HuskyLens inference
       slideLoop();// Run the loop to control the slide
-      droneLaunch();//Run the drone Launch Loop.
+      droneLaunch();// Run the drone Launch Loop.
     }
 
   }
@@ -135,16 +135,15 @@ public class Main extends LinearOpMode {// #####################################
 
   static void mechanumLoop() {
     // code to switch functions
-    if(gamepad1.y){
+    if (gamepad1.y) {
       dMode = true;
     }
-    if(gamepad1.a){
+    if (gamepad1.a) {
       dMode = false;
     }
-    if(dMode){
+    if (dMode) {
       robotCentricLoop();
-    }
-    else{
+    } else {
       fieldCentricLoop();
     }
   }
@@ -207,6 +206,16 @@ public class Main extends LinearOpMode {// #####################################
     return true;
   }
 
+  private void resetLiftMovingDown() {
+    liftMovingDown = false;
+    liftMovingDownTimestamp = 0;
+  }
+
+  public void resetAutobreakButton() {
+    autobreakPressed = false;
+    autobreakPressedTimestamp = 0;
+  }
+
   public void slideLoop(){/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     if(gamepad2.b && !autobreak){
       //brake motor
@@ -236,7 +245,7 @@ public class Main extends LinearOpMode {// #####################################
   private long autobreakPressedTimestamp = 0;
 
   // Add this method in your class
-  private void resetAutobreakButton() {
+  public void resetAutobreakButton() {
       autobreakPressed = false;
       autobreakPressedTimestamp = 0;
   }
@@ -298,11 +307,10 @@ public class Main extends LinearOpMode {// #####################################
     slideDown = sIn.getState();
   }
 
-  public void droneLaunch(){
-    if(gamepad2.dpad_Left){
+  public void droneLaunch() {
+    if (gamepad2.dpad_Left) {
       droneMotor.setState(true);
-    }
-    else{
+    } else {
       droneMotor.setState(false);
     }
   }

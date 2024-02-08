@@ -244,12 +244,6 @@ public class Main extends LinearOpMode {// #####################################
   private boolean autobreakPressed = false;
   private long autobreakPressedTimestamp = 0;
 
-  // Add this method in your class
-  public void resetAutobreakButton() {
-      autobreakPressed = false;
-      autobreakPressedTimestamp = 0;
-  }
-
   // Then, in your main loop or a more suitable place, add the following code:
   if(System.currentTimeMillis()-autobreakPressedTimestamp>1000)
 
@@ -272,12 +266,6 @@ public class Main extends LinearOpMode {// #####################################
   // Add these member variables at the beginning of your class
   private boolean liftMovingDown = false;
   private long liftMovingDownTimestamp = 0;
-
-  // Add this method in your class
-  private void resetLiftMovingDown() {
-      liftMovingDown = false;
-      liftMovingDownTimestamp = 0;
-  }
 
   // Then, in your main loop or a more suitable place, add the following code:
   if(System.currentTimeMillis()-liftMovingDownTimestamp>1000)

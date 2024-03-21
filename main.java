@@ -75,6 +75,10 @@ public class Main extends LinearOpMode {
         }
     }
 
+    public void SlideandClawLoop(){
+        
+    }
+
     public void fieldCentricLoop() {
         double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
         double x = gamepad1.left_stick_x;

@@ -1,231 +1,146 @@
 package org.firstinspires.ftc.teamcode;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import org.firstinspires.ftc.robotcore.external.JavaUtil;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.GpioPin;
-import com.qualcomm.robotcore.hardware.GpioPinDigitalInput;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-@TeleOp(name = "Competition", group = "Competition")
+@TeleOp
 public class Main extends LinearOpMode {
 
-  // Declaration of motor variables
-  private static DcMotor frontRightMotor;
-  private static DcMotor backRightMotor;
-  private static DcMotor frontLeftMotor;
-  private static DcMotor backLeftMotor;
+    DcMotor frontLeftMotor;
+    DcMotor backLeftMotor;
+    DcMotor frontRightMotor;
+    DcMotor backRightMotor;
+    DcMotor slideRot;
+    DcMotor lift;
 
-  // Declaration of digital channels for sensors and actuators
-  private DigitalChannel sIn;        // Input sensor
-  private DigitalChannel droneMotor; // Motor for drone
-  private DigitalChannel sOut;       // Output sensor
+    IMU imu;
 
-  // Constructor executed when Op Mode is selected
-  @Override
-  public void runOpMode() {
+    boolean isRobotCentric = false;
 
-    // Initializing digital channels for sensors and actuators
-    sIn = hardwareMap.get(DigitalChannel.class, "sIn");
-    droneMotor = hardwareMap.get(DigitalChannel.class, "droneMotor");
-    sOut = hardwareMap.get(DigitalChannel.class, "sOut");
+    @Override
+    public void runOpMode() throws InterruptedException {
+        // Declare our motors
+        // Make sure your ID's match your configuration
+        frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
+        backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
+        frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
+        backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
+        slideRot = hardwareMap.dcMotor.get("slideRot");
+        lift = hardwareMap.dcMotor.get("lift");
 
-    // Setting modes for digital channels
-    sIn.setMode(DigitalChannel.Mode.INPUT);
-    sOut.setMode(DigitalChannel.Mode.OUTPUT);
-    droneMotor.setMode(DigitalChannel.Mode.OUTPUT);
+        // Reverse the right side motors. This may be wrong for your setup.
+        // If your robot moves backwards when commanded to go forwards,
+        // reverse the left side instead.
+        // See the note about this earlier on this page.
+        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-    // Setting initial states for digital channels
-    sIn.setState(true);
-    droneMotor.setState(false);
+        // Retrieve the IMU from the hardware map
+        imu = hardwareMap.get(IMU.class, "imu");
+        // Adjust the orientation parameters to match your robot
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        // Without this, the REV Hub's orientation is assumed to be logo up / USB
+        // forward
+        imu.initialize(parameters);
 
-    // Mechanum drive variables
-    float y;
-    double x;
-    float rx;
-    double denominator;
+        waitForStart();
 
-    // Variables for pixel and slide control
-    boolean pixelLoaded = false;
-    boolean grabbed = false;
-    float lowBatThreshold = 9.0f;
-    boolean autobreak = true;
-    boolean slideDown = true;
-
-    // Initializing motors
-    frontRightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
-    backRightMotor = hardwareMap.get(DcMotor.class, "backRightMotor");
-    frontLeftMotor = hardwareMap.get(DcMotor.class, "frontLeftMotor");
-    backLeftMotor = hardwareMap.get(DcMotor.class, "backLeftMotor");
-
-    // Reversing right side motors
-    frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-    backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
-    // HuskyLens variables and initialization
-    ElapsedTime myElapsedTime;
-    List<HuskyLens.Block> myHuskyLensBlocks;
-    digitalChannel = hardwareMap.digitalChannel.get("gpio" + GPIO_PIN);
-    digitalChannel.setMode(Mode.INPUT);
-    float batvolt = ControlHub_VoltageSensor.getVoltage();
-    telemetry.addLine("Current Battery Voltage (v): " + batvolt);
-    if (batvolt <= lowBatThreshold) {
-      telemetry.addLine("Voltage too low. Please charge or replace battery.");
-      telemetry.update();
-    }
-    myElapsedTime = new ElapsedTime();
-
-    sOut.setState(true);
-
-    // Initializing IMU (Inertial Measurement Unit)
-    IMU imu = hardwareMap.get(IMU.class, "imu");
-    IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-        RevHubOrientationOnRobot.LogoFacingDirection.UP,
-        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
-    imu.initialize(parameters);
-
-    waitForStart();
-    if (isStopRequested())
-      return;
-
-    // Main loop of the Op Mode
-    while (opModeIsActive()) {
-      updateGPIO();
-      mechanumLoop();
-      huskyLoop();
-      slideLoop();
-      droneLaunch();
-    }
-
-  }
-
-  // Method to handle HuskyLens functionality
-  static void huskyLoop() {
-    // Code for HuskyLens operations
-  }
-
-  // Method for controlling mechanum drive
-  static void mechanumLoop() {
-    // Code for mechanum drive control
-  }
-
-  // Method for field-centric mechanum drive control
-  static void fieldCentricLoop() {
-    // Code for field-centric mechanum drive control
-  }
-
-  // Method for robot-centric mechanum drive control
-  static void robotCentricLoop() {
-    // Code for robot-centric mechanum drive control
-  }
-
-  // Method to check if slide is down
-  public boolean checkIfDown() {
-    // Method body to check if the slide is down
-    return true;
-  }
-
-  // Method to reset lift moving down state
-  private void resetLiftMovingDown() {
-    // Method body to reset lift moving down state
-  }
-
-  // Method to reset autobreak button state
-  public void resetAutobreakButton() {
-    // Method body to reset autobreak button state
-  }
-
-  // Method for controlling slide movement
-  public void slideLoop() {
-    // Code for slide control
-  }
-
-  // Method for controlling claw movement
-  public void clawLoop() {
-    // Code for claw control
-  }
-
-  // Method to update GPIO
-  public void updateGPIO() {
-    // Method body to update GPIO
-  }
-
-  // Method to launch drone
-  public void droneLaunch() {
-    // Method body to launch drone
-  }
-
-  // Continuing comments for the AI-generated code
-
-// Inner class for robot controller logic
-public class RobotController {
-
-    // Method to navigate the robot to a specific position (x, y)
-    public void moveToPosition(float x, float y, float currentX, float currentY) {
-        // Calculate the angle the robot needs to turn to face the target position
-        float angleToTurn = calculateAngle(currentX, currentY, x, y);
-
-        // Turn the robot to face the target position
-        turn(angleToTurn);
-
-        // Calculate the distance to move to reach the target position
-        float distanceToMove = calculateDistance(currentX, currentY, x, y);
-
-        // Check if the distance should be negative
-        boolean direction = true; // By default, move forward
-        if (distanceToMove < 0) {
-            distanceToMove = -distanceToMove; // Make distance positive
-            direction = false; // Set direction to move backward
-        }
-
-        // Stop execution if distance to move is 0
-        if (distanceToMove == 0) {
+        if (isStopRequested())
             return;
+
+        while (opModeIsActive()) {
+            mechanumLoop();
+        }
+    }
+
+    public void mechanumLoop(){
+        if(isRobotCentric){
+            robotCentricLoop();
+        }
+        else{
+            fieldCentricLoop();
+        }
+        if(gamepad1.a){
+            isRobotCentric = !isRobotCentric;
+            while(gamepad1.a){
+                opModeIsActive();
+            }
+        }
+    }
+
+    public void fieldCentricLoop() {
+        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+        double x = gamepad1.left_stick_x;
+        double rx = gamepad1.right_stick_x;
+
+        // This button choice was made so that it is hard to hit on accident,
+        // it can be freely changed based on preference.
+        // The equivalent button is start on Xbox-style controllers.
+        if (gamepad1.options) {
+            imu.resetYaw();
         }
 
-        // Move the robot forward or backward by the calculated distance
-        move(direction, distanceToMove);
-    }
+        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-    // Method to calculate the angle the robot needs to turn to face the target position
-    private float calculateAngle(float currentX, float currentY, float targetX, float targetY) {
-        float deltaX = targetX - currentX;
-        float deltaY = targetY - currentY;
+        // Rotate the movement direction counter to the bot's rotation
+        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
 
-        // Calculate the angle using arctangent
-        float angleInRadians = (float) Math.atan2(deltaY, deltaX);
-        float angleInDegrees = (float) Math.toDegrees(angleInRadians);
+        rotX = rotX * 1.1; // Counteract imperfect strafing
 
-        // Ensure the angle is between 0 and 360 degrees
-        if (angleInDegrees < 0) {
-            angleInDegrees += 360;
+        // Denominator is the largest motor power (absolute value) or 1
+        // This ensures all the powers maintain the same ratio,
+        // but only if at least one is out of the range [-1, 1]
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+        double frontLeftPower = (rotY + rotX + rx) / denominator;
+        double backLeftPower = (rotY - rotX + rx) / denominator;
+        double frontRightPower = (rotY - rotX - rx) / denominator;
+        double backRightPower = (rotY + rotX - rx) / denominator;
+
+        if(gamepad1.b){
+            frontLeftPower /= 2;
+            backLeftPower /= 2;
+            frontRightPower /= 2;
+            backRightPower /= 2;
         }
 
-        return angleInDegrees;
+        frontLeftMotor.setPower(frontLeftPower);
+        backLeftMotor.setPower(backLeftPower);
+        frontRightMotor.setPower(frontRightPower);
+        backRightMotor.setPower(backRightPower);
     }
 
-    // Method to calculate the distance between two points
-    private float calculateDistance(float x1, float y1, float x2, float y2) {
-        float deltaX = x2 - x1;
-        float deltaY = y2 - y1;
+    public void robotCentricLoop() {
+        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+        double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+        double rx = gamepad1.right_stick_x;
 
-        // Calculate the Euclidean distance
-        return (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    }
+        // Denominator is the largest motor power (absolute value) or 1
+        // This ensures all the powers maintain the same ratio,
+        // but only if at least one is out of the range [-1, 1]
+        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+        double frontLeftPower = (y + x + rx) / denominator;
+        double backLeftPower = (y - x + rx) / denominator;
+        double frontRightPower = (y - x - rx) / denominator;
+        double backRightPower = (y + x - rx) / denominator;
+        
+        if(gamepad1.b){
+            frontLeftPower /= 2;
+            backLeftPower /= 2;
+            frontRightPower /= 2;
+            backRightPower /= 2;
+        }
 
-    // Method to turn the robot to a specific angle
-    private void turn(float degrees) {
-        // Implementation of turn() method
-        // Code to turn the robot to the specified angle
-    }
-
-    // Method to move the robot forward or backward by a specified distance
-    private void move(boolean direction, float inches) {
-        // Implementation of move() method
-        // Code to move the robot forward or backward by the specified distance
+        frontLeftMotor.setPower(frontLeftPower);
+        backLeftMotor.setPower(backLeftPower);
+        frontRightMotor.setPower(frontRightPower);
+        backRightMotor.setPower(backRightPower);
     }
 }

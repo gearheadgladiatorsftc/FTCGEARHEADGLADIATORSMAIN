@@ -11,12 +11,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 @TeleOp
 public class Main extends LinearOpMode {
 
-    DcMotor frontLeftMotor;
-    DcMotor backLeftMotor;
     DcMotor frontRightMotor;
+    DcMotor frontLeftMotor;
     DcMotor backRightMotor;
+    DcMotor backLeftMotor;
     DcMotor slideRot;
     DcMotor lift;
+    Servo clawRot;
+    Servo grip;
 
     IMU imu;
 
@@ -32,6 +34,8 @@ public class Main extends LinearOpMode {
         backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
         slideRot = hardwareMap.dcMotor.get("slideRot");
         lift = hardwareMap.dcMotor.get("lift");
+        clawRot = hardwareMap.servo.get("clawRot");
+        grip = hardwareMap.servo.get("grip");
 
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
@@ -57,6 +61,23 @@ public class Main extends LinearOpMode {
 
         while (opModeIsActive()) {
             mechanumLoop();
+            slideLoop();
+            clawLoop();
+        }
+    }
+
+    public void clawLoop(){
+        if(gamepad1.y){//change to gamepad 2
+            clawRot.setPosition(90);
+        }
+        if(gamepad1.a){
+            clawRot.setPosition(0);
+        }
+        if(gamepad1.x){
+            grip.setPosition(180);
+        }
+        if(gamepad1.b){
+            grip.setPosition(0);
         }
     }
 
@@ -75,8 +96,25 @@ public class Main extends LinearOpMode {
         }
     }
 
-    public void SlideandClawLoop(){
-        
+    public void slideLoop(){
+        if(gamepad1.left_trigger != 0){///////////////change to gamepad 2
+            lift.setPower(gamepad1.left_trigger);
+        }
+        else if(gamepad1.right_trigger != 0){
+            lift.setPower(gamepad1.right_trigger * (-1));
+        }
+        else{
+            lift.setPower(0);
+        }
+        if(gamepad1.left_bumper){
+            slideRot.setPower(-1);
+        }
+        else if(gamepad1.right_bumper){
+            slideRot.setPower(1);
+        }
+        else{
+            slideRot.setPower(0);
+        }
     }
 
     public void fieldCentricLoop() {
@@ -109,10 +147,10 @@ public class Main extends LinearOpMode {
         double backRightPower = (rotY + rotX - rx) / denominator;
 
         if(gamepad1.b){
-            frontLeftPower /= 2;
-            backLeftPower /= 2;
-            frontRightPower /= 2;
-            backRightPower /= 2;
+            frontLeftPower /= 3;
+            backLeftPower /= 3;
+            frontRightPower /= 3;
+            backRightPower /= 3;
         }
 
         frontLeftMotor.setPower(frontLeftPower);
@@ -136,10 +174,10 @@ public class Main extends LinearOpMode {
         double backRightPower = (y + x - rx) / denominator;
         
         if(gamepad1.b){
-            frontLeftPower /= 2;
-            backLeftPower /= 2;
-            frontRightPower /= 2;
-            backRightPower /= 2;
+            frontLeftPower /= 3;
+            backLeftPower /= 3;
+            frontRightPower /= 3;
+            backRightPower /= 3;
         }
 
         frontLeftMotor.setPower(frontLeftPower);

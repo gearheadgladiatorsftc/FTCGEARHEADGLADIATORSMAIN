@@ -67,7 +67,7 @@ public class Main extends LinearOpMode {
     }
 
     public void clawLoop(){
-        if(gamepad1.y){//change to gamepad 2
+        if(gamepad2.y){//change to gamepad 2
             clawRot.setPosition(90);
         }
         if(gamepad1.a){
@@ -97,7 +97,7 @@ public class Main extends LinearOpMode {
     }
 
     public void slideLoop(){
-        if(gamepad1.left_trigger != 0){///////////////change to gamepad 2
+        if(gamepad2.left_trigger != 0){//change to gamepad 2
             lift.setPower(gamepad1.left_trigger);
         }
         else if(gamepad1.right_trigger != 0){

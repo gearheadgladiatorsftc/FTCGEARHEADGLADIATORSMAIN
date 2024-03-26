@@ -15,6 +15,7 @@ public class Main extends LinearOpMode {
     DcMotor frontLeftMotor;
     DcMotor backRightMotor;
     DcMotor backLeftMotor;
+    DcMotor elbow;
     DcMotor slideRot;
     DcMotor lift;
     Servo clawRot;
@@ -36,6 +37,7 @@ public class Main extends LinearOpMode {
         lift = hardwareMap.dcMotor.get("lift");
         clawRot = hardwareMap.servo.get("clawRot");
         grip = hardwareMap.servo.get("grip");
+        elbow = hardwareMap.dcMotor.get("elbow");
 
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
@@ -67,18 +69,19 @@ public class Main extends LinearOpMode {
     }
 
     public void clawLoop(){
-        if(gamepad2.y){//change to gamepad 2
+        if(gamepad2.y){//change to gamepad 2 - done
             clawRot.setPosition(90);
         }
-        if(gamepad1.a){
+        if(gamepad2.a){
             clawRot.setPosition(0);
         }
-        if(gamepad1.x){
+        if(gamepad2.x){
             grip.setPosition(180);
         }
-        if(gamepad1.b){
+        if(gamepad2.b){
             grip.setPosition(0);
         }
+        elbow.setPower(gamepad2.left_stick_y);
     }
 
     public void mechanumLoop(){
@@ -97,19 +100,19 @@ public class Main extends LinearOpMode {
     }
 
     public void slideLoop(){
-        if(gamepad2.left_trigger != 0){//change to gamepad 2
+        if(gamepad2.left_trigger != 0){///////////////change to gamepad 2 - done
             lift.setPower(gamepad1.left_trigger);
         }
-        else if(gamepad1.right_trigger != 0){
+        else if(gamepad2.right_trigger != 0){
             lift.setPower(gamepad1.right_trigger * (-1));
         }
         else{
             lift.setPower(0);
         }
-        if(gamepad1.left_bumper){
+        if(gamepad2.left_bumper){
             slideRot.setPower(-1);
         }
-        else if(gamepad1.right_bumper){
+        else if(gamepad2.right_bumper){
             slideRot.setPower(1);
         }
         else{

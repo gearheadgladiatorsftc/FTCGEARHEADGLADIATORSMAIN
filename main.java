@@ -69,16 +69,16 @@ public class Main extends LinearOpMode {
     }
 
     public void clawLoop(){
-        if(gamepad2.y){//change to gamepad 2 - done
+        if(gamepad2.dpad_up){//change to gamepad 2 - done
             clawRot.setPosition(90);
         }
-        if(gamepad2.a){
+        if(gamepad2.dpad_down){
             clawRot.setPosition(0);
         }
-        if(gamepad2.x){
+        if(gamepad2.dpad_left){
             grip.setPosition(180);
         }
-        if(gamepad2.b){
+        if(gamepad2.dpad_right){
             grip.setPosition(0);
         }
         elbow.setPower(gamepad2.left_stick_y);

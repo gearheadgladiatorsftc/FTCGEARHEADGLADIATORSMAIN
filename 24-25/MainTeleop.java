@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 //Allows for gamepad control of the wheels and armsystem
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
+//import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.pidControllers.PIDBase;
+//import org.firstinspires.ftc.teamcode.pidControllers.PIDBase;
 @TeleOp(group = "drive")
 public class MainTeleOp extends LinearOpMode {
 
@@ -38,63 +38,69 @@ public class MainTeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException { //idk what InterruptedException is, but it works!
-        //telemetry.update();
-        //Init constructors
-        armSystem = new ArmSystem(hardwareMap);
-        driveSystem = new DriveSystem(hardwareMap);
-        imu = hardwareMap.get(IMU.class, "imu");
-        // Adjust the orientation parameters to match your robot
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-                RevHubOrientationOnRobot.UsbFacingDirection.UP));
-        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
+        try {
+            //telemetry.update();
+            //Init constructors
+            armSystem = new ArmSystem(hardwareMap);
+            driveSystem = new DriveSystem(hardwareMap);
+            imu = hardwareMap.get(IMU.class, "imu");
+            // Adjust the orientation parameters to match your robot
+            IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                    RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                    RevHubOrientationOnRobot.UsbFacingDirection.UP));
+            // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
 
-        imu.initialize(parameters);
+            imu.initialize(parameters);
 
-        waitForStart(); // Wait until start button is pressed
+            waitForStart(); // Wait until start button is pressed
 
 
-        long tic = System.nanoTime(); //System time in nanoseconds. Nanoseconds that have passed since last reboot
-        //This is going to be the baseline
+            long tic = System.nanoTime(); //System time in nanoseconds. Nanoseconds that have passed since last reboot
+            //This is going to be the baseline
 
-        while (!isStopRequested()) { // the ! reverses the input. So this evaluates to while(StopHasNotYetBeenRequested)
+            while (!isStopRequested()) { // the ! reverses the input. So this evaluates to while(StopHasNotYetBeenRequested)
 
-            driveControl(); //Execute tasks on driver 1 gamepad
+                driveControl(); //Execute tasks on driver 1 gamepad
 
-            armControl(); //driver 2 gamepad
-            long toc = System.nanoTime();
-            if(toc - tic >= 30000000) {
-                if (gamepad2.dpad_up) {
-                    armSystem.setShoulderPower(armSystem.shoulder.getPosition() + 0.01);
+                armControl(); //driver 2 gamepad
+                long toc = System.nanoTime();
+                if (toc - tic >= 30000000) {
+                    if (gamepad2.dpad_up) {
+                        armSystem.setShoulderPower(armSystem.shoulder.getPosition() + 0.01);
+                    }
+                    if (gamepad2.dpad_down) {
+                        armSystem.setShoulderPower(armSystem.shoulder.getPosition() - 0.01);
+                    }
+                    if (gamepad2.dpad_right) {
+                        armSystem.setShoulderPower(armSystem.shoulder.getPosition() + 0.003);
+                    }
+                    if (gamepad2.dpad_left) {
+                        armSystem.setShoulderPower(armSystem.shoulder.getPosition() - 0.003);
+                    }
+                    if (gamepad2.y) {
+                        armSystem.setElbowPosition(armSystem.elbow.getPosition() + 0.01);
+                    }
+                    if (gamepad2.a) {
+                        armSystem.setElbowPosition(armSystem.elbow.getPosition() - 0.01);
+                    }
+                    if (gamepad2.b) {
+                        armSystem.setElbowPosition(armSystem.elbow.getPosition() + 0.003);
+                    }
+                    if (gamepad2.x) {
+                        armSystem.setElbowPosition(armSystem.elbow.getPosition() - 0.003);
+                    }
+                    tic = System.nanoTime();
                 }
-                if (gamepad2.dpad_down) {
-                    armSystem.setShoulderPower(armSystem.shoulder.getPosition() - 0.01);
-                }
-                if (gamepad2.dpad_right) {
-                    armSystem.setShoulderPower(armSystem.shoulder.getPosition() + 0.003);
-                }
-                if (gamepad2.dpad_left) {
-                    armSystem.setShoulderPower(armSystem.shoulder.getPosition() - 0.003);
-                }
-                if (gamepad2.y) {
-                    armSystem.setElbowPosition(armSystem.elbow.getPosition() + 0.01);
-                }
-                if (gamepad2.a) {
-                    armSystem.setElbowPosition(armSystem.elbow.getPosition() - 0.01);
-                }
-                if (gamepad2.b) {
-                    armSystem.setElbowPosition(armSystem.elbow.getPosition() + 0.003);
-                }
-                if (gamepad2.x) {
-                    armSystem.setElbowPosition(armSystem.elbow.getPosition() - 0.003);
-                }
-                tic = System.nanoTime();
+
+
+                telemetryUpdate();
             }
-
-
-            telemetryUpdate();
         }
-
+        catch(Exception e){
+            telemetry.addData("Message: ", e.getMessage());
+            telemetry.addData("Cause: ", e.getCause());
+        }
+            
 
     }
     void driveButtonCheck(){
@@ -126,9 +132,9 @@ public class MainTeleOp extends LinearOpMode {
     }
 
     void armControl(){
-        if(gamepad2.dpad_left) {
+        if(gamepad2.left_bumper) {
             armSystem.setClaw(0.75);
-        } else if(gamepad2.dpad_right) {
+        } else if(gamepad2.right_bumper) {
             armSystem.setClaw(0);
         }
 
@@ -152,7 +158,7 @@ public class MainTeleOp extends LinearOpMode {
 
     void telemetryUpdate(){
         //husky.print();
-        Pose2d poseEstimate = driveSystem.getPoseEstimate(); //Ignore this, it doesn't work
+        //Pose2d poseEstimate = driveSystem.getPoseEstimate(); //Ignore this, it doesn't work
         telemetry.addData("Mode is Field Centric", FIELD_CENTRIC);
         telemetry.addData("claw POS", armSystem.claw.getPosition());
         telemetry.addData("Ready for pixel", readyState);
